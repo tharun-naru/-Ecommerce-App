@@ -99,9 +99,9 @@ eksctl version
 =============================
 Execute the below commands as separate set
 (a)
-eksctl create cluster --name=kastro-eks \
-                      --region=us-east-1 \
-                      --zones=us-east-1a,us-east-1b \
+eksctl create cluster --name=aniket-eks \
+                      --region=ap-south-1 \
+                      --zones=ap-south-1a,ap-south-1b \
                       --version=1.30 \
                       --without-nodegroup
 
@@ -110,8 +110,8 @@ Goto EKS Console and verify the cluster.
 
 (b)
 eksctl utils associate-iam-oidc-provider \
-    --region us-east-1 \
-    --cluster kastro-eks \
+    --region ap-south-1 \
+    --cluster aniket-eks \
     --approve
 
 The above command is crucial when setting up an EKS cluster because it enables IAM roles for service accounts (IRSA)
@@ -123,16 +123,16 @@ Without it, these services will not be able to access AWS resources securely.
 (c)
 Before executing the below command, in the 'ssh-public-key' keep the  '<PEM FILE NAME>' (dont give .pem. Just give the pem file name) which was used to create Jenkins Server
 
-eksctl create nodegroup --cluster=kastro-eks \
-                       --region=us-east-1 \
+eksctl create nodegroup --cluster=aniket-eks \
+                       --region=ap-south-1 \
                        --name=node2 \
-                       --node-type=t3.medium \
+                       --node-type=c7i-flex.large \
                        --nodes=3 \
                        --nodes-min=2 \
                        --nodes-max=4 \
                        --node-volume-size=20 \
                        --ssh-access \
-                       --ssh-public-key=ecommerce \
+                       --ssh-public-key=DevOps \
                        --managed \
                        --asg-access \
                        --external-dns-access \
@@ -433,13 +433,13 @@ pipeline {
 
     environment {
         SCANNER_HOME = tool 'sonar-scanner'
-        DOCKER_IMAGE = "kastrov/ecommerce:latest"
+        DOCKER_IMAGE = "aniketwakekar/ecommerce:latest"
     }
 
     stages {
         stage('Git Checkout') {
             steps {
-                git 'https://github.com/KastroVKiran/Ecommerce-App-Kastro.git'
+                git 'https://github.com/Wakekar/Ecommerce-App-Kastro.git'
             }
         }
 
@@ -550,7 +550,7 @@ pipeline {
                 emailext (
                     subject: "${jobName} - Build ${buildNumber} - ${pipelineStatus.toUpperCase()}",
                     body: body,
-                    to: 'kastrokiran@gmail.com',
+                    to: 'aniket241192@gmail.com',
                     from: 'jenkins@example.com',
                     replyTo: 'jenkins@example.com',
                     mimeType: 'text/html',
@@ -560,6 +560,7 @@ pipeline {
         }
     }
 }
+
 
 ---------------------------------------
 Deploying to EKS Cluster
@@ -767,7 +768,7 @@ pipeline {
         // ✅ These two stages were outside of "stages" block before. Moved inside.
         stage('Deploy To Kubernetes') {
             steps {
-                withKubeConfig(caCertificate: '', clusterName: 'kastro-eks', contextName: '', credentialsId: 'k8-token', namespace: 'webapps', restrictKubeConfigAccess: false, serverUrl: 'https://A3A38B4561B8159534054B870C447E05.yl4.us-east-1.eks.amazonaws.com') {
+               withKubeConfig(caCertificate: '', clusterName: 'aniket-eks', contextName: '', credentialsId: 'k8-token', namespace: 'webapps', restrictKubeConfigAccess: false, serverUrl: 'https://2BB7BD2C5ADBA2B3087DEB638955CF81.sk1.ap-south-1.eks.amazonaws.com') {
                     sh "kubectl apply -f deployment-service.yaml -n webapps"
                 }
             }
@@ -775,7 +776,7 @@ pipeline {
 
         stage('Verify the Deployment') {
             steps {
-                withKubeConfig(caCertificate: '', clusterName: 'kastro-eks', contextName: '', credentialsId: 'k8-token', namespace: 'webapps', restrictKubeConfigAccess: false, serverUrl: 'https://A3A38B4561B8159534054B870C447E05.yl4.us-east-1.eks.amazonaws.com') {
+               withKubeConfig(caCertificate: '', clusterName: 'aniket-eks', contextName: '', credentialsId: 'k8-token', namespace: 'webapps', restrictKubeConfigAccess: false, serverUrl: 'https://2BB7BD2C5ADBA2B3087DEB638955CF81.sk1.ap-south-1.eks.amazonaws.com') {
                     sh "kubectl get pods -n webapps"
                     sh "kubectl get svc -n webapps"
                 }
